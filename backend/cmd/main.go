@@ -33,6 +33,8 @@ func main() {
 	const version = "v.0.1.0"
 	fmt.Println("Skill finder", version)
 
+	log.SetFlags(log.Lshortfile)
+
 	var configFile string
 	flag.StringVar(&configFile, "config", "skillFinder.cfg", "Configuration file for skill finder")
 	flag.Parse()
@@ -47,6 +49,28 @@ func main() {
 	}
 	db := persist.NewDb()
 	db.Users = append(db.Users, model.User{Name: "rickers_m", Password: "admin"})
+	db.Persons["test_user"] = model.Person{
+		Name:      "Test User",
+		Team:      "Future Project",
+		Abilities: []model.Ability{},
+	}
+
+	// First we get a "copy" of the entry
+	if employee, ok := db.Persons["test_user"]; ok {
+
+		// Then we modify the copy
+		employee.Abilities = append(employee.Abilities, model.Ability{
+			Specific: model.Skill{
+				Keyword:     "Safety Requirements",
+				Shortname:   "Safety",
+				Description: "Create Saftey requirements for system under development",
+			},
+			Level: 3,
+		})
+
+		// Then we reassign map entry
+		db.Persons["test_user"] = employee
+	}
 
 	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		controllers.UserRegistration(w, r, &db)
@@ -55,12 +79,9 @@ func main() {
 		controllers.UserLogin(w, r, &db)
 	})
 
-	http.HandleFunc("/editProfile", controllers.LoggedIn(controllers.UpdateUserProfile, &db))
-	http.HandleFunc("/getProfile", controllers.LoggedIn(controllers.GetUserProfile, &db))
-
-	http.HandleFunc("/persons", controllers.LoggedIn(func(w http.ResponseWriter, r *http.Request, db *persist.Db) {
-		log.Println("Accessing proteced area!")
-	}, &db))
+	http.HandleFunc("/api/v1/editProfile", controllers.LoggedIn(controllers.UpdateUserProfile, &db))
+	http.HandleFunc("/api/v1/getProfile", controllers.LoggedIn(controllers.GetUserProfile, &db))
+	http.HandleFunc("/api/v1/getPersons", controllers.LoggedIn(controllers.GetAllEmployees, &db))
 
 	fmt.Println("Listen for endpoint:", config.Endpoint)
 	err = http.ListenAndServe(config.Endpoint, nil)

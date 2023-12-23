@@ -17,6 +17,8 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request, db *persist.Db) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	if person, ok := db.Persons[userName]; ok {
 		jsonData, err := json.Marshal(person)
 		if err != nil {
@@ -25,13 +27,21 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request, db *persist.Db) {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
 		w.Write(jsonData)
 		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
+	errorDto := model.ErrorDto{
+		Message:   "profile empty",
+		ErrorCode: -10,
+	}
+	jsonErrorData, err := json.Marshal(errorDto)
+
+	if err != nil {
+		log.Println("serialize errorDto failed:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(jsonErrorData)
 }
 
 func UpdateUserProfile(w http.ResponseWriter, r *http.Request, db *persist.Db) {
@@ -78,6 +88,9 @@ func getUser(r *http.Request, db *persist.Db) (user string, err error) {
 }
 
 func parsePerson(r *http.Request) (person model.Person, err error) {
-	err = json.NewDecoder(r.Body).Decode(&person)
+	if err = json.NewDecoder(r.Body).Decode(&person); err != nil {
+		err = fmt.Errorf("deserialize person failed: %s", err)
+	}
+
 	return
 }

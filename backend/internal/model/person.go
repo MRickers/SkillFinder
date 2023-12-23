@@ -5,14 +5,20 @@ import (
 )
 
 type Skill struct {
-	Name  string `json:"name"`
-	Level int    `json:"level"`
+	Keyword     string `json:"keyword"`
+	Shortname   string `json:"shortname"`
+	Description string `json:"description"`
+}
+
+type Ability struct {
+	Specific Skill `json:"skill"`
+	Level    int   `json:"level"`
 }
 
 type Person struct {
-	Name      string `json:"name"`
-	Team      string `json:"team"`
-	Abilities Skill  `json:"skill"`
+	Name      string    `json:"name"`
+	Team      string    `json:"team"`
+	Abilities []Ability `json:"abilities"`
 }
 
 type Observer interface {
@@ -31,7 +37,7 @@ type PersonObservers struct {
 
 func ContainsPerson(persons []Person, person Person) bool {
 	for _, personList := range persons {
-		if personList == person {
+		if personList.Name == person.Name {
 			return true
 		}
 	}
