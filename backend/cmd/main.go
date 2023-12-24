@@ -79,7 +79,11 @@ func main() {
 		controllers.UserLogin(w, r, &db)
 	})
 
-	http.HandleFunc("/api/v1/editProfile", controllers.LoggedIn(controllers.UpdateUserProfile, &db))
+	http.HandleFunc("/api/v1/editProfile", controllers.LoggedIn(controllers.UserProfileCreate, &db))
+	http.HandleFunc("/api/v1/editProfileName", controllers.LoggedIn(controllers.UserProfileChangeUsername, &db))
+	http.HandleFunc("/api/v1/editProfileTeam", controllers.LoggedIn(controllers.UserProfileChangeTeam, &db))
+	http.HandleFunc("/api/v1/editProfileAbility", controllers.LoggedIn(controllers.UserProfileUpdateAbility, &db))
+	http.HandleFunc("/api/v1/editProfileDeleteAbility", controllers.LoggedIn(controllers.UserProfileDeleteAbility, &db))
 	http.HandleFunc("/api/v1/getProfile", controllers.LoggedIn(controllers.GetUserProfile, &db))
 	http.HandleFunc("/api/v1/getPersons", controllers.LoggedIn(controllers.GetAllEmployees, &db))
 

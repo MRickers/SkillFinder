@@ -102,6 +102,7 @@ func UserRegistration(w http.ResponseWriter, r *http.Request, db *persist.Db) {
 	}
 
 	db.Users = append(db.Users, user)
+	db.Persons[user.Name] = model.Person{}
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User registration successful"))
